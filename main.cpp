@@ -16,11 +16,11 @@ int HEIGHT = 20, WIDTH = 40;
 class Snake{
     public:
     bool L = 0, R = 0, U = 0, D = 0;
-    char head = '@', tail = 'o';
+    const char head = '@', tail = 'o';
     int length = 0;
     vector<int> SnakeXY = {WIDTH/2, HEIGHT/2};
-    vector<int> TailX = { };
-    vector<int> TailY = { };
+    vector<int> TailX = {0};
+    vector<int> TailY = {0};
     void KeyB(){
         char key;
         if (_kbhit()){
@@ -76,8 +76,9 @@ class Screen{
         SetConsoleCursorInfo(hStdOut, &info);
     }
     template<typename T>
-    void Draw(short x, short y, T c){
+    void Draw(short x, short y, T c, int color){
         gotoxy(x, y);
+        SetConsoleTextAttribute(hStdOut, color);
         cout << c;
     }
     #endif
@@ -88,14 +89,18 @@ class Food{
     vector<int> FoodXY = { };
     void GenerateFood(){
         srand(time(NULL));
-        FoodXY = {rand() % WIDTH + 1, rand() % HEIGHT + 1};
-        if(FoodXY[0] == 0){
-            FoodXY[0]++;
+        WIDTH--;
+        HEIGHT--;
+        int RandX = rand() % WIDTH + 1;
+        int RandY =  rand() % HEIGHT + 1;
+        FoodXY = { RandX , RandY };
+        for(auto c: snake.TailX){
+            if(FoodXY[0] == snake.TailX[c] && FoodXY[1] == snake.TailY[c]){
+                GenerateFood();
+            }
         }
-        if(FoodXY[1] == 0){
-            FoodXY[1]++;
-        }
-        screen.Draw(FoodXY[0], FoodXY[1], 'F');
+        WIDTH++;
+        HEIGHT++;
     }
 }food;
 
@@ -108,12 +113,10 @@ int main(){
         for(int i = 0; i <= WIDTH; i++){
             for(int j = 0; j <= HEIGHT; j++){
                 if(j == 0 || j == HEIGHT){
-                    screen.gotoxy(i, j);
-                    cout << "#";
+                    screen.Draw(i, j, '#', 15);
                 }
                 else if(i == 0 || i == WIDTH){
-                    screen.gotoxy(i, j);
-                    cout << "#";
+                    screen.Draw(i, j, '#', 15);
                 }
             }
         }
@@ -136,25 +139,47 @@ int main(){
         int tempY = snake.SnakeXY[1];
         if(snake.SnakeXY[0] == food.FoodXY[0] && snake.SnakeXY[1] == food.FoodXY[1]){
             snake.length++;
-            screen.Draw(food.FoodXY[0], food.FoodXY[1], ' ');
+            screen.Draw(food.FoodXY[0], food.FoodXY[1], ' ', 30);
             food.GenerateFood();
         }
-        screen.Draw(snake.SnakeXY[0], snake.SnakeXY[1], snake.head);
+        screen.Draw(snake.SnakeXY[0], snake.SnakeXY[1], snake.head, 10);
+        screen.Draw(food.FoodXY[0], food.FoodXY[1], 'F', 12);
         Sleep(100);
         if(snake.length < 1){
-            screen.Draw(tempX, tempY, ' ');
+            screen.Draw(tempX, tempY, ' ', 0);
         }
         else{
             //Draw Tail
-            screen.Draw(tempX, tempY, ' ');
+            for(int c = 0; c < snake.length; c++){
+                screen.Draw(snake.TailX[c], snake.TailY[c], ' ', 0);
+                if(c > 0 && snake.SnakeXY[0] == snake.TailX[c] && snake.SnakeXY[1] == snake.TailY[c]){
+                    gameOver = true;
+                }
+            }
+            screen.Draw(tempX, tempY, ' ', 0);
+            int prevX = snake.TailX[0];
+            int prevY = snake.TailY[0];
+            int prev2X, prev2Y;
+            snake.TailX[0] = snake.SnakeXY[0];
+            snake.TailY[0] = snake.SnakeXY[1];
+            for(int i = 1; i <= snake.length; i++){
+                prev2X = snake.TailX[i];
+                prev2Y = snake.TailY[i];
+                snake.TailX[i] = prevX;
+                snake.TailY[i] = prevY;
+                prevX = prev2X;
+                prevY = prev2Y;
+            }
+            for(int c = 0; c < snake.length; c++){
+                screen.Draw(snake.TailX[c], snake.TailY[c], snake.tail, 2);
+            }
+            if(snake.length == HEIGHT * WIDTH - 1){
+                screen.Draw(WIDTH/2-5, HEIGHT/2, "YOU WIN!", 32);
+                getch();
+            }
         }
-        screen.Draw(WIDTH + 1, HEIGHT + 1, food.FoodXY[0]);
-        screen.Draw(WIDTH + 1, HEIGHT + 2, food.FoodXY[1]);
-        screen.Draw(WIDTH + 1, HEIGHT + 3, snake.SnakeXY[0]);
-        screen.Draw(WIDTH + 1, HEIGHT + 4, snake.SnakeXY[1]);
     }
-
-    screen.Draw(WIDTH/2-5, HEIGHT/2, "Game Over!");
+    screen.Draw(WIDTH/2-5, HEIGHT/2, "Game Over!", 11);
     screen.gotoxy(WIDTH/2-5, HEIGHT/2 - 1);
     printf("Score: %i", snake.length);
     getch();
