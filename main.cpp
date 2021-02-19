@@ -17,7 +17,7 @@ class Snake{
     public:
     bool L = 0, R = 0, U = 0, D = 0;
     const char head = '@', tail = 'o';
-    int length = 0;
+    int length = 1;
     vector<int> SnakeXY = {WIDTH/2, HEIGHT/2};
     vector<int> TailX = {0};
     vector<int> TailY = {0};
@@ -107,6 +107,8 @@ class Food{
 int main(){
     bool gameOver = false;
     food.GenerateFood();
+    snake.TailX.reserve(HEIGHT*WIDTH);
+    snake.TailY.reserve(HEIGHT*WIDTH);
     while(!gameOver){
         screen.hideCursor();
         snake.KeyB();
@@ -178,9 +180,12 @@ int main(){
                 getch();
             }
         }
+        screen.gotoxy(0, HEIGHT + 1);
+        printf("Score: %i", snake.length);
     }
     screen.Draw(WIDTH/2-5, HEIGHT/2, "Game Over!", 11);
     screen.gotoxy(WIDTH/2-5, HEIGHT/2 - 1);
     printf("Score: %i", snake.length);
+    Sleep(200);
     getch();
 }
