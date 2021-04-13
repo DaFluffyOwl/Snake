@@ -13,6 +13,7 @@
 using namespace std;
 
 int HEIGHT = 20, WIDTH = 40;
+int sleep_time = 100;
 class Snake{
     public:
     bool L = 0, R = 0, U = 0, D = 0;
@@ -146,7 +147,7 @@ int main(){
         }
         screen.Draw(snake.SnakeXY[0], snake.SnakeXY[1], snake.head, 10);
         screen.Draw(food.FoodXY[0], food.FoodXY[1], 'F', 12);
-        Sleep(100);
+        Sleep(sleep_time);
         if(snake.length < 1){
             screen.Draw(tempX, tempY, ' ', 0);
         }
